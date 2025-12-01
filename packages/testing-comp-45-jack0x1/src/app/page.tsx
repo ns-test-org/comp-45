@@ -1,84 +1,210 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-const slogans = [
-  "Turn chats into apps",
-  "Prompt. Ship. Repeat.",
-  "Build anything from a chat",
-  "Ideas → Apps, instantly",
-  "From zero to MVP in minutes",
-  "Your cofounder in the command line",
-  "Draft, iterate, deploy",
-  "Ship faster than you can type",
-  "Design in text, deliver in code",
-  "Dream it. Prompt it. Run it.",
-  "Chat-native app building",
-  "From prompt to product",
-  "One prompt, infinite apps",
-  "Stop scaffolding. Start shipping.",
-  "Prototype at the speed of thought",
-  "Make conversations executable"
-];
+export default function Calculator() {
+  const [display, setDisplay] = useState('0');
+  const [previousValue, setPreviousValue] = useState<number | null>(null);
+  const [operation, setOperation] = useState<string | null>(null);
+  const [waitingForOperand, setWaitingForOperand] = useState(false);
 
-export default function Landing() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+  const inputNumber = (num: string) => {
+    if (waitingForOperand) {
+      setDisplay(num);
+      setWaitingForOperand(false);
+    } else {
+      setDisplay(display === '0' ? num : display + num);
+    }
+  };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsVisible(false);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % slogans.length);
-        setIsVisible(true);
-      }, 400);
-    }, 2800);
+  const inputOperation = (nextOperation: string) => {
+    const inputValue = parseFloat(display);
 
-    return () => clearInterval(interval);
-  }, []);
+    if (previousValue === null) {
+      setPreviousValue(inputValue);
+    } else if (operation) {
+      const currentValue = previousValue || 0;
+      const newValue = calculate(currentValue, inputValue, operation);
+
+      setDisplay(String(newValue));
+      setPreviousValue(newValue);
+    }
+
+    setWaitingForOperand(true);
+    setOperation(nextOperation);
+  };
+
+  const calculate = (firstValue: number, secondValue: number, operation: string) => {
+    switch (operation) {
+      case '+':
+        return firstValue + secondValue;
+      case '-':
+        return firstValue - secondValue;
+      case '×':
+        return firstValue * secondValue;
+      case '÷':
+        return firstValue / secondValue;
+      case '=':
+        return secondValue;
+      default:
+        return secondValue;
+    }
+  };
+
+  const performCalculation = () => {
+    const inputValue = parseFloat(display);
+
+    if (previousValue !== null && operation) {
+      const newValue = calculate(previousValue, inputValue, operation);
+      setDisplay(String(newValue));
+      setPreviousValue(null);
+      setOperation(null);
+      setWaitingForOperand(true);
+    }
+  };
+
+  const clear = () => {
+    setDisplay('0');
+    setPreviousValue(null);
+    setOperation(null);
+    setWaitingForOperand(false);
+  };
+
+  const inputDecimal = () => {
+    if (waitingForOperand) {
+      setDisplay('0.');
+      setWaitingForOperand(false);
+    } else if (display.indexOf('.') === -1) {
+      setDisplay(display + '.');
+    }
+  };
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden bg-black text-white">
-      {/* Enhanced animated aurora background layers */}
-      <div className="absolute inset-0 bg-aurora-layer-1" />
-      <div className="absolute inset-0 bg-aurora-layer-2" />
-      <div className="absolute inset-0 bg-aurora-layer-3" />
-      
-      {/* Floating particles overlay */}
-      <div className="absolute inset-0 bg-particles" />
-      
-      {/* Main content - centered */}
-      <main className="relative z-10 h-full flex flex-col items-center justify-center px-6">
-        <h1 className="text-center text-[clamp(28px,6vw,64px)] font-medium tracking-tight mb-4">
-          Turn Chats into Apps
-        </h1>
-        
-        {/* Rotating slogans */}
-        <div className="mt-4 h-8 md:h-10 overflow-hidden flex items-center justify-center">
-          <span
-            className={`inline-block text-center text-[clamp(18px,3vw,32px)] font-light transition-all duration-[400ms] ease-in-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-            }`}
-          >
-            {slogans[currentIndex]}
-          </span>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+        <div className="mb-4">
+          <div className="bg-black rounded-lg p-4 text-right">
+            <div className="text-white text-3xl font-mono overflow-hidden">
+              {display}
+            </div>
+          </div>
         </div>
-      </main>
-      
-      {/* Start Prompting arrow pointing left - bottom left */}
-      <div className="absolute left-6 md:left-8 bottom-[5%] z-20 flex items-center gap-3 arrow-point-left">
-        <div className="flex items-center gap-2 text-white/80 font-medium text-sm md:text-base">
-          <svg 
-            className="w-5 h-5 md:w-6 md:h-6 animate-bounce-horizontal" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
+
+        <div className="grid grid-cols-4 gap-3">
+          {/* Row 1 */}
+          <button
+            onClick={clear}
+            className="col-span-2 bg-gray-500 hover:bg-gray-400 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span>Start prompting</span>
+            Clear
+          </button>
+          <button
+            onClick={() => inputOperation('÷')}
+            className="bg-orange-500 hover:bg-orange-400 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            ÷
+          </button>
+          <button
+            onClick={() => inputOperation('×')}
+            className="bg-orange-500 hover:bg-orange-400 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            ×
+          </button>
+
+          {/* Row 2 */}
+          <button
+            onClick={() => inputNumber('7')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            7
+          </button>
+          <button
+            onClick={() => inputNumber('8')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            8
+          </button>
+          <button
+            onClick={() => inputNumber('9')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            9
+          </button>
+          <button
+            onClick={() => inputOperation('-')}
+            className="bg-orange-500 hover:bg-orange-400 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            -
+          </button>
+
+          {/* Row 3 */}
+          <button
+            onClick={() => inputNumber('4')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            4
+          </button>
+          <button
+            onClick={() => inputNumber('5')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            5
+          </button>
+          <button
+            onClick={() => inputNumber('6')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            6
+          </button>
+          <button
+            onClick={() => inputOperation('+')}
+            className="bg-orange-500 hover:bg-orange-400 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            +
+          </button>
+
+          {/* Row 4 */}
+          <button
+            onClick={() => inputNumber('1')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            1
+          </button>
+          <button
+            onClick={() => inputNumber('2')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            2
+          </button>
+          <button
+            onClick={() => inputNumber('3')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            3
+          </button>
+          <button
+            onClick={performCalculation}
+            className="row-span-2 bg-orange-500 hover:bg-orange-400 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            =
+          </button>
+
+          {/* Row 5 */}
+          <button
+            onClick={() => inputNumber('0')}
+            className="col-span-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            0
+          </button>
+          <button
+            onClick={inputDecimal}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-4 rounded-lg text-lg transition-colors"
+          >
+            .
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
